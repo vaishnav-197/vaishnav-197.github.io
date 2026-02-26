@@ -25,14 +25,24 @@
   let centralMesh;              // the morphing central shape
   let glowMesh;                 // glow sphere behind central
 
+  // Floating interactive objects
+  let floatingObjects = [];     // interactive 3D shapes
+  let raycaster = null;
+  let mouseVec = null;
+  let dragTarget = null;        // currently dragged object
+  let isDragging = false;
+  let dragStart = { x: 0, y: 0 };
+  let dragPrev = { x: 0, y: 0 };
+  let dragVelocity = { x: 0, y: 0 };
+
   // Section scroll boundaries (computed on load)
-  const sectionIds = ['hero', 'about', 'experience', 'skills', 'projects', 'education', 'contact'];
+  const sectionIds = ['hero', 'about', 'experience', 'skills', 'projects', 'blog', 'education', 'contact'];
   let sectionOffsets = [];
 
   // ── Init Three.js ───────────────────────────────────────────
   function initThree() {
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0a0a0f, 0.015);
+    scene.fog = new THREE.FogExp2(0x0f0d0b, 0.015);
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
     camera.position.set(0, 0, 40);
@@ -44,18 +54,18 @@
     canvasContainer.appendChild(renderer.domElement);
 
     // Lights
-    const ambient = new THREE.AmbientLight(0x6366f1, 0.3);
+    const ambient = new THREE.AmbientLight(0xc2410c, 0.3);
     scene.add(ambient);
 
-    const dir1 = new THREE.DirectionalLight(0x8b5cf6, 0.7);
+    const dir1 = new THREE.DirectionalLight(0xea580c, 0.7);
     dir1.position.set(5, 8, 5);
     scene.add(dir1);
 
-    const dir2 = new THREE.DirectionalLight(0xec4899, 0.4);
+    const dir2 = new THREE.DirectionalLight(0x9a3412, 0.4);
     dir2.position.set(-5, -3, 8);
     scene.add(dir2);
 
-    const point = new THREE.PointLight(0x6366f1, 0.5, 60);
+    const point = new THREE.PointLight(0xc2410c, 0.5, 60);
     point.position.set(0, 0, 20);
     scene.add(point);
 
@@ -63,6 +73,11 @@
     createParticleField();
     createMorphingCentral();
     createGlowSphere();
+    createFloatingObjects();
+
+    // Raycaster for object picking
+    raycaster = new THREE.Raycaster();
+    mouseVec = new THREE.Vector2();
   }
 
   // ── 1. Scroll-Assembled Icosahedron ─────────────────────────
@@ -97,7 +112,7 @@
       const cz = (vertices[2] + vertices[5] + vertices[8]) / 3;
 
       // Pick a random color from palette
-      const colors = [0x6366f1, 0x8b5cf6, 0xec4899, 0xa78bfa, 0x818cf8];
+      const colors = [0xc2410c, 0xea580c, 0x9a3412, 0xf97316, 0x78350f];
       const color = colors[Math.floor(Math.random() * colors.length)];
 
       const mat = new THREE.MeshStandardMaterial({
@@ -155,10 +170,10 @@
     const colors = new Float32Array(count * 3);
 
     const palette = [
-      new THREE.Color(0x6366f1),
-      new THREE.Color(0x8b5cf6),
-      new THREE.Color(0xec4899),
-      new THREE.Color(0xa78bfa),
+      new THREE.Color(0xc2410c),
+      new THREE.Color(0xea580c),
+      new THREE.Color(0x9a3412),
+      new THREE.Color(0xf97316),
     ];
 
     for (let i = 0; i < count; i++) {
@@ -207,7 +222,7 @@
     ];
 
     const mat = new THREE.MeshStandardMaterial({
-      color: 0x8b5cf6,
+      color: 0xea580c,
       wireframe: true,
       transparent: true,
       opacity: 0,
@@ -224,7 +239,7 @@
   function createGlowSphere() {
     const geo = new THREE.SphereGeometry(5, 32, 32);
     const mat = new THREE.MeshBasicMaterial({
-      color: 0x6366f1,
+      color: 0xc2410c,
       transparent: true,
       opacity: 0,
       blending: THREE.AdditiveBlending,
@@ -232,6 +247,173 @@
     glowMesh = new THREE.Mesh(geo, mat);
     glowMesh.position.set(15, 0, -8);
     scene.add(glowMesh);
+  }
+
+  // ── 5. Floating Interactive Objects ─────────────────────────
+  function createFloatingObjects() {
+    const geometryFactories = [
+      () => new THREE.TorusGeometry(1, 0.4, 12, 48),
+      () => new THREE.OctahedronGeometry(1.2, 0),
+      () => new THREE.DodecahedronGeometry(1, 0),
+      () => new THREE.IcosahedronGeometry(1, 0),
+      () => new THREE.TorusKnotGeometry(0.8, 0.3, 64, 8),
+      () => new THREE.ConeGeometry(0.8, 1.6, 6),
+      () => new THREE.TetrahedronGeometry(1.1, 0),
+      () => new THREE.BoxGeometry(1.2, 1.2, 1.2),
+    ];
+
+    const colors = [0xc2410c, 0xea580c, 0x9a3412, 0xf97316, 0x78350f, 0xb45309];
+    const objectCount = 18;
+
+    for (let i = 0; i < objectCount; i++) {
+      const geoFn = geometryFactories[Math.floor(Math.random() * geometryFactories.length)];
+      const geo = geoFn();
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const scale = 0.5 + Math.random() * 1.5;
+
+      // Wireframe shell
+      const wireMat = new THREE.MeshStandardMaterial({
+        color: color,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.25,
+        roughness: 0.3,
+        metalness: 0.8,
+      });
+
+      // Solid inner (subtle)
+      const solidMat = new THREE.MeshStandardMaterial({
+        color: color,
+        transparent: true,
+        opacity: 0.08,
+        roughness: 0.5,
+        metalness: 0.6,
+        side: THREE.DoubleSide,
+      });
+
+      const group = new THREE.Group();
+      const wireMesh = new THREE.Mesh(geo, wireMat);
+      const solidMesh = new THREE.Mesh(geo.clone(), solidMat);
+      solidMesh.scale.setScalar(0.95);
+      group.add(wireMesh);
+      group.add(solidMesh);
+
+      // Spread across the scene
+      const x = (Math.random() - 0.5) * 60;
+      const y = (Math.random() - 0.5) * 80;
+      const z = -5 - Math.random() * 12;
+      group.position.set(x, y, z);
+      group.scale.setScalar(scale);
+
+      // Random initial rotation
+      group.rotation.set(
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2
+      );
+
+      group.userData = {
+        basePos: new THREE.Vector3(x, y, z),
+        baseScale: scale,
+        currentScale: scale,
+        phase: Math.random() * Math.PI * 2,
+        floatSpeedX: 0.2 + Math.random() * 0.4,
+        floatSpeedY: 0.3 + Math.random() * 0.5,
+        rotSpeedX: (Math.random() - 0.5) * 0.3,
+        rotSpeedY: (Math.random() - 0.5) * 0.3,
+        rotSpeedZ: (Math.random() - 0.5) * 0.2,
+        // Inertia for drag rotation
+        inertiaX: 0,
+        inertiaY: 0,
+        // Track hover glow
+        hoverAmount: 0,
+        wireMat: wireMat,
+        solidMat: solidMat,
+        originalColor: new THREE.Color(color),
+      };
+
+      scene.add(group);
+      floatingObjects.push(group);
+    }
+  }
+
+  // ── Update floating objects each frame ──────────────────────
+  function updateFloatingObjects(time) {
+    // Project mouse to world space for proximity check
+    const mouseWorld = new THREE.Vector3(
+      mouseX * 40,  // rough world-space mapping
+      -mouseY * 25 + smoothScroll * -15,
+      0
+    );
+
+    floatingObjects.forEach(obj => {
+      const ud = obj.userData;
+
+      // ── Idle float animation
+      const floatX = Math.sin(time * ud.floatSpeedX + ud.phase) * 0.8;
+      const floatY = Math.cos(time * ud.floatSpeedY + ud.phase * 1.3) * 0.6;
+      obj.position.x = ud.basePos.x + floatX;
+      obj.position.y = ud.basePos.y + floatY;
+
+      // Scroll parallax (deeper objects move less)
+      const depthFactor = Math.abs(ud.basePos.z) / 15;
+      obj.position.y -= smoothScroll * 20 * depthFactor;
+
+      // ── Idle rotation (slowed when dragging this object)
+      if (dragTarget !== obj) {
+        obj.rotation.x += ud.rotSpeedX * 0.016;
+        obj.rotation.y += ud.rotSpeedY * 0.016;
+        obj.rotation.z += ud.rotSpeedZ * 0.016;
+      }
+
+      // ── Apply inertia from drag release
+      if (Math.abs(ud.inertiaX) > 0.001 || Math.abs(ud.inertiaY) > 0.001) {
+        obj.rotation.x += ud.inertiaX;
+        obj.rotation.y += ud.inertiaY;
+        ud.inertiaX *= 0.96;  // friction decay
+        ud.inertiaY *= 0.96;
+      }
+
+      // ── Mouse proximity interaction
+      const screenPos = obj.position.clone().project(camera);
+      const dx = (mouseX) - screenPos.x * 0.5;
+      const dy = (-mouseY) - screenPos.y * 0.5;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const proximityThreshold = 0.2;
+
+      if (dist < proximityThreshold && !isDragging) {
+        // Scale up, glow
+        const strength = 1 - (dist / proximityThreshold);
+        ud.hoverAmount = lerp(ud.hoverAmount, strength, 0.08);
+      } else {
+        ud.hoverAmount = lerp(ud.hoverAmount, 0, 0.05);
+      }
+
+      // Apply hover effects
+      const targetScale = ud.baseScale * (1 + ud.hoverAmount * 0.3);
+      ud.currentScale = lerp(ud.currentScale, targetScale, 0.08);
+      obj.scale.setScalar(ud.currentScale);
+
+      // Glow: increase opacity & emissive
+      ud.wireMat.opacity = 0.25 + ud.hoverAmount * 0.35;
+      ud.solidMat.opacity = 0.08 + ud.hoverAmount * 0.12;
+
+      const glowColor = ud.originalColor.clone();
+      glowColor.lerp(new THREE.Color(0xffffff), ud.hoverAmount * 0.3);
+      ud.wireMat.color.copy(glowColor);
+
+      // Faster spin on hover
+      if (ud.hoverAmount > 0.1 && dragTarget !== obj) {
+        obj.rotation.x += ud.rotSpeedX * 0.03 * ud.hoverAmount;
+        obj.rotation.y += ud.rotSpeedY * 0.03 * ud.hoverAmount;
+      }
+
+      // Push away from cursor
+      if (ud.hoverAmount > 0.05) {
+        const pushDir = obj.position.clone().sub(mouseWorld).normalize();
+        obj.position.add(pushDir.multiplyScalar(ud.hoverAmount * 0.08));
+      }
+    });
   }
 
   // ── Compute section scroll offsets ──────────────────────────
@@ -273,7 +455,7 @@
     // ── Update fragments (assembled icosahedron) ──
     // Hero section (index 0): fragments assemble over scroll progress
     const assembleProgress = sec.index === 0
-      ? easeInOutCubic(Math.min(sec.progress * 1.5, 1))
+      ? easeInOutCubic(Math.min(sec.progress * 0.8, 1))
       : 1; // fully assembled after hero
 
     const fragmentsVisible = smoothScroll < 0.25; // fade out after hero
@@ -352,6 +534,9 @@
       positions.array[ix + 1] += Math.sin(time * 0.5 + i * 0.1) * 0.003;
     }
     positions.needsUpdate = true;
+
+    // ── Update floating interactive objects ──
+    updateFloatingObjects(time);
 
     // ── Camera ──
     // Mouse parallax
@@ -496,7 +681,101 @@
   window.addEventListener('mousemove', (e) => {
     mouseX = (e.clientX / window.innerWidth) - 0.5;
     mouseY = (e.clientY / window.innerHeight) - 0.5;
+
+    // Drag rotation
+    if (isDragging && dragTarget) {
+      const deltaX = e.clientX - dragPrev.x;
+      const deltaY = e.clientY - dragPrev.y;
+      dragTarget.rotation.y += deltaX * 0.01;
+      dragTarget.rotation.x += deltaY * 0.01;
+      dragVelocity.x = deltaY * 0.01;
+      dragVelocity.y = deltaX * 0.01;
+      dragPrev.x = e.clientX;
+      dragPrev.y = e.clientY;
+    }
   });
+
+  // ── Drag / Swipe to rotate objects ────────────────────────
+  function getPointerPos(e) {
+    if (e.touches && e.touches.length > 0) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onPointerDown(e) {
+    const pos = getPointerPos(e);
+    mouseVec.x = (pos.x / window.innerWidth) * 2 - 1;
+    mouseVec.y = -(pos.y / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouseVec, camera);
+
+    // Collect all meshes inside floating object groups
+    const allMeshes = [];
+    floatingObjects.forEach(group => {
+      group.traverse(child => {
+        if (child.isMesh) {
+          child._parentGroup = group; // stash ref
+          allMeshes.push(child);
+        }
+      });
+    });
+
+    const intersects = raycaster.intersectObjects(allMeshes, false);
+    if (intersects.length > 0) {
+      const hit = intersects[0].object;
+      dragTarget = hit._parentGroup || hit;
+      isDragging = true;
+      dragStart.x = pos.x;
+      dragStart.y = pos.y;
+      dragPrev.x = pos.x;
+      dragPrev.y = pos.y;
+      dragVelocity.x = 0;
+      dragVelocity.y = 0;
+
+      // Stop inertia on grab
+      if (dragTarget.userData) {
+        dragTarget.userData.inertiaX = 0;
+        dragTarget.userData.inertiaY = 0;
+      }
+
+      // Prevent scroll while dragging on touch
+      if (e.cancelable) e.preventDefault();
+    }
+  }
+
+  function onPointerMove(e) {
+    if (!isDragging || !dragTarget) return;
+    const pos = getPointerPos(e);
+    const deltaX = pos.x - dragPrev.x;
+    const deltaY = pos.y - dragPrev.y;
+    dragTarget.rotation.y += deltaX * 0.01;
+    dragTarget.rotation.x += deltaY * 0.01;
+    dragVelocity.x = deltaY * 0.01;
+    dragVelocity.y = deltaX * 0.01;
+    dragPrev.x = pos.x;
+    dragPrev.y = pos.y;
+    if (e.cancelable) e.preventDefault();
+  }
+
+  function onPointerUp() {
+    if (isDragging && dragTarget && dragTarget.userData) {
+      // Apply inertia
+      dragTarget.userData.inertiaX = dragVelocity.x;
+      dragTarget.userData.inertiaY = dragVelocity.y;
+    }
+    isDragging = false;
+    dragTarget = null;
+  }
+
+  // Mouse events on canvas
+  canvasContainer.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mouseup', onPointerUp);
+
+  // Touch events on canvas
+  canvasContainer.addEventListener('touchstart', onPointerDown, { passive: false });
+  canvasContainer.addEventListener('touchmove', onPointerMove, { passive: false });
+  canvasContainer.addEventListener('touchend', onPointerUp);
 
   window.addEventListener('resize', () => {
     if (!camera || !renderer) return;
@@ -507,12 +786,81 @@
   });
 
   // ── Init Everything ─────────────────────────────────────────
+  // ── Fetch Medium Blog Posts ──────────────────────────────────
+  function fetchMediumPosts() {
+    const MEDIUM_USER = 'vyshnav18';
+    const RSS_URL = `https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@${MEDIUM_USER}`;
+    const blogGrid = document.getElementById('blogGrid');
+
+    fetch(RSS_URL)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status !== 'ok' || !data.items || data.items.length === 0) {
+          blogGrid.innerHTML = `
+            <div class="blog-loading">
+              <p>No posts found. <a href="https://medium.com/@${MEDIUM_USER}" target="_blank" rel="noopener" style="color: var(--accent-2);">Visit Medium →</a></p>
+            </div>`;
+          return;
+        }
+
+        const posts = data.items.slice(0, 6); // show up to 6 posts
+        blogGrid.innerHTML = posts.map((post, i) => {
+          // Extract thumbnail — filter out Medium tracking pixels
+          const isRealImage = (url) => url && !url.includes('/stat?') && !url.includes('medium.com/_/') && url.match(/\.(jpg|jpeg|png|gif|webp)/i);
+          const contentImgs = [...post.description.matchAll(/<img[^>]+src="([^"]+)"/g)].map(m => m[1]);
+          const realContentImg = contentImgs.find(isRealImage) || '';
+          const thumbnail = isRealImage(post.thumbnail) ? post.thumbnail : realContentImg;
+
+          // Strip HTML for excerpt
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = post.description;
+          const excerpt = tempDiv.textContent.substring(0, 150).trim() + '…';
+
+          // Format date
+          const date = new Date(post.pubDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          });
+
+          // Tags (categories)
+          const tags = (post.categories || []).slice(0, 3);
+          const tagsHtml = tags.map(t => `<span class="blog-card-tag">${t}</span>`).join('');
+
+          return `
+            <a href="${post.link}" target="_blank" rel="noopener noreferrer"
+               class="blog-card reveal reveal-delay-${Math.min(i + 1, 4)}">
+              ${thumbnail ? `<img class="blog-card-thumbnail" src="${thumbnail}" alt="${post.title}" loading="lazy" />` : ''}
+              <div class="blog-card-body">
+                ${tagsHtml ? `<div class="blog-card-tags">${tagsHtml}</div>` : ''}
+                <h3>${post.title}</h3>
+                <p>${excerpt}</p>
+                <div class="blog-card-footer">
+                  <span class="blog-card-date">${date}</span>
+                  <span class="blog-card-read">Read →</span>
+                </div>
+              </div>
+            </a>`;
+        }).join('');
+
+        // Re-trigger scroll reveal for new blog cards
+        initScrollReveal();
+      })
+      .catch(() => {
+        blogGrid.innerHTML = `
+          <div class="blog-loading">
+            <p>Couldn't load posts. <a href="https://medium.com/@${MEDIUM_USER}" target="_blank" rel="noopener" style="color: var(--accent-2);">Visit on Medium →</a></p>
+          </div>`;
+      });
+  }
+
   initThree();
   computeSectionOffsets();
   initScrollReveal();
   initTimelineCards();
   initSkillsCards();
   initProjectTilt();
+  fetchMediumPosts();
   animate();
 
   // Recompute on full load (images etc.)
