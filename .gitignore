@@ -1,0 +1,8 @@
+# Job-search workspace — holds current/expected CTC, notice period, and the full
+# list of where applications have gone. This repo is a public GitHub Pages site;
+# nothing in here should ever be published.
+job-apply/
+
+__pycache__/
+*.pyc
+.DS_Store
