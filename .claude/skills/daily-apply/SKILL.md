@@ -26,18 +26,23 @@ no follow-ups due should say so in two lines and stop, not manufacture activity.
 
 ## Phase 0 — bootstrap (first run only)
 
-If `job-apply/` doesn't exist, create it from `assets/`:
+If `job-apply/` doesn't exist, create it from the bundled templates. Paths
+below are relative to **this skill's own directory** (given to you when the
+skill loads) so they resolve whether the skill is installed personally at
+`~/.claude/skills/` or inside a project — never hardcode either location:
 
 ```
 job-apply/
-  answers.md        ← .claude/skills/daily-apply/assets/answers.template.md
-  inbox.md          ← .claude/skills/daily-apply/assets/inbox.template.md
-  tracker.csv       ← .claude/skills/daily-apply/assets/tracker.template.csv
-  fact-bank.md      ← .claude/skills/tailor-resume/assets/fact-bank.template.md
+  answers.md        ← <this skill>/assets/answers.template.md
+  inbox.md          ← <this skill>/assets/inbox.template.md
+  tracker.csv       ← <this skill>/assets/tracker.template.csv
+  fact-bank.md      ← <tailor-resume skill>/assets/fact-bank.template.md
   master-resume.docx  (ask the user for this)
   roles/
   journal/
 ```
+
+`<tailor-resume skill>` sits beside this one, wherever this one is installed.
 
 Then make sure `job-apply/` is in `.gitignore` and confirm it isn't already
 tracked (`git ls-files job-apply/`). It holds current CTC, notice period, and a

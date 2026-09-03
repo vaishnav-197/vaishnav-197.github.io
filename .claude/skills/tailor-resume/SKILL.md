@@ -127,8 +127,13 @@ files called `resume.pdf` into one folder, and yours should still be findable.
 Then verify, because a resume that looks right on screen can still be unreadable
 to the parser that reads it first:
 
+Run the verifier bundled with this skill — `scripts/verify_resume.py`, relative
+to this skill's own directory (given to you when the skill loads, so it resolves
+from `~/.claude/skills/` or from a project install alike):
+
 ```bash
-python3 .claude/skills/tailor-resume/scripts/verify_resume.py roles/<slug>/resume.pdf --bullets roles/<slug>/changes.md
+python3 "<this skill>/scripts/verify_resume.py" roles/<slug>/resume.pdf \
+  --bullets roles/<slug>/changes.md
 ```
 
 It checks that the PDF has an extractable text layer (an image-only export
