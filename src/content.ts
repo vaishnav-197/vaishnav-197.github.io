@@ -16,7 +16,7 @@ export const profile = {
 };
 
 export const about = {
-  lead: "I build products across the stack — from Node.js services and PostgreSQL queries to the React interfaces people actually touch.",
+  lead: "Good software feels effortless. I do the hard work that makes it that way.",
   body: "I care about the parts people feel but rarely name: how fast a page renders, how a service behaves under load, how a codebase holds up as a team grows. Four years in, that's still the work I enjoy most.",
   facts: [
     ["Now", "Senior Product Engineer, Premagic"],
