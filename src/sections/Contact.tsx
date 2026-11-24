@@ -22,21 +22,21 @@ export function Contact() {
         </Suspense>
       </div>
       <div className={container}>
-        <h2 data-swarm="type" className="meta w-fit">09 — Contact</h2>
+        <h2 className="meta">09 — Contact</h2>
         <Magnet padding={80} magnetStrength={8} maxOffset={18} wrapperClassName="mt-6">
-          <a href={`mailto:${profile.email}`} data-swarm="type" data-swarm-label="Say hello." className="block w-fit font-serif text-[clamp(4rem,14vw,11rem)] leading-[0.9] tracking-[-0.02em]">
+          <a href={`mailto:${profile.email}`} className="block font-serif text-[clamp(4rem,14vw,11rem)] leading-[0.9] tracking-[-0.02em]">
             Say{" "}
             <AuroraText className="italic" colors={["#c23a22", "#e98a5c", "#b9a7e8", "#e98a5c"]} speed={0.6}>
               hello.
             </AuroraText>
           </a>
         </Magnet>
-        <p data-swarm="scan" className="mt-6 max-w-md text-muted">
+        <p className="mt-6 max-w-md text-muted">
           Happy to talk services, databases, front ends — or whatever you are building.
         </p>
 
         <div className="mt-12 grid gap-8 border-t border-rule pt-6 md:grid-cols-2">
-          <ul data-swarm="pop" data-swarm-label="Links" className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             {links.map((l) => (
               <li key={l.label}>
                 <a
@@ -49,7 +49,7 @@ export function Contact() {
               </li>
             ))}
           </ul>
-          <ul data-swarm="pop" data-swarm-label="Resume" className="flex flex-wrap gap-x-6 gap-y-2 text-sm md:justify-end">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm md:justify-end">
             <li>
               <a href={profile.resume} download className="link-underline">
                 Resume ↓
