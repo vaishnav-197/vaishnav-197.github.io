@@ -1,12 +1,13 @@
+import DecryptedText from "@/components/DecryptedText";
+import Magnet from "@/components/Magnet";
 import { AuroraBars } from "@/components/unlumen-ui/aurora-bars";
 import { NoiseTexture } from "@/components/ui/noise-texture";
-import { TextAnimate } from "@/components/ui/text-animate";
 import { WordRotate } from "@/components/ui/word-rotate";
-import { profile } from "@/content";
+import { experience, profile } from "@/content";
 import { container } from "./Section";
 
 export function Hero() {
-  const year = new Date().getFullYear();
+  const current = experience[0];
 
   return (
     <section id="top" className="relative isolate overflow-hidden">
@@ -29,48 +30,51 @@ export function Hero() {
 
       <div className={`${container} flex min-h-[calc(100svh-3.5rem)] flex-col justify-between py-10 md:py-14`}>
         <p className="meta">
-          No. 04 · {year} · {profile.location}
+          <DecryptedText
+            text={`${current.title} at ${current.company} · ${profile.location}`}
+            animateOn="view"
+            sequential
+            speed={28}
+            characters="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#*+"
+            encryptedClassName="text-accent"
+          />
         </p>
 
-        <div className="py-16">
-          <TextAnimate
-            as="h1"
-            by="word"
-            animation="blurInUp"
-            once
-            className="font-serif text-[clamp(4.5rem,28vw,13rem)] leading-[0.86] tracking-[-0.02em]"
-          >
+        <h1 className="py-8 font-serif text-[clamp(4.5rem,28vw,13rem)] leading-[0.86] tracking-[-0.02em] md:py-16">
+          <span data-swarm="type" className="block w-fit">
             {profile.name[0]}
-          </TextAnimate>
-          <TextAnimate
-            as="p"
-            by="word"
-            animation="blurInUp"
-            delay={0.15}
-            once
-            className="font-serif text-[clamp(4.5rem,28vw,13rem)] italic leading-[0.86] tracking-[-0.02em]"
-          >
+          </span>{" "}
+          <span data-swarm="type" className="block w-fit italic">
             {profile.name[1]}
-          </TextAnimate>
-        </div>
+          </span>
+        </h1>
 
         <div className="grid items-end gap-6 border-t border-ink pt-6 md:grid-cols-12">
           <div className="md:col-span-7">
-            <p className="max-w-md text-lg leading-snug">
+            <p data-swarm="scan" className="max-w-md text-lg leading-snug">
               {profile.standfirst}
             </p>
-            <WordRotate
-              words={profile.stack}
-              duration={2200}
-              className="block font-serif text-4xl italic text-accent md:text-5xl"
-            />
+            <span data-swarm="pop" data-swarm-label={profile.stack.join(", ")} className="block w-fit">
+              <WordRotate
+                words={profile.stack}
+                duration={2200}
+                className="block font-serif text-4xl italic text-accent md:text-5xl"
+              />
+            </span>
           </div>
-          <div className="flex gap-6 text-sm md:col-span-5 md:justify-end">
-            <a href="#work" className="link-underline">
-              Selected work ↓
-            </a>
-            <a href={profile.resume} className="link-underline" download>
-              Resume ↓
+          <div className="flex items-center gap-6 text-sm md:col-span-5 md:justify-end">
+            <span data-swarm="drag" data-swarm-from="right" className="inline-block">
+              <Magnet padding={60} magnetStrength={3} maxOffset={12}>
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="inline-block rounded-full bg-ink px-4 py-2 font-medium text-paper transition-[background-color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-accent active:scale-[0.98]"
+                >
+                  Email me
+                </a>
+              </Magnet>
+            </span>
+            <a data-swarm="pop" href={profile.resume} className="link-underline" download>
+              Download resume ↓
             </a>
           </div>
         </div>

@@ -19,7 +19,7 @@ export function Section({ id, number, label, aside, children, className }: Props
       <div className={cn(container, "grid gap-8 md:grid-cols-12")}>
         <div className="md:col-span-3">
           <div className="md:sticky md:top-24">
-            <h2 className="meta">
+            <h2 data-swarm="type" className="meta w-fit">
               {number} — {label}
             </h2>
             {aside}

@@ -116,6 +116,11 @@
   }
 }
 
+/* Cursor swarm: marked elements wait for a cursor to build them (see src/lib/swarm.ts). */
+.swarm [data-swarm]:not([data-swarm-done]) {
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

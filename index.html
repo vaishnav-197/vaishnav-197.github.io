@@ -65,6 +65,16 @@
       />
     </noscript>
     <script>
+      // Cursor swarm: hide the marked elements before first paint, so cursors can build them.
+      // If the swarm never starts (a script error), show everything after 5 s.
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("swarm");
+        setTimeout(function () {
+          if (!window.__swarm) document.documentElement.classList.remove("swarm");
+        }, 5000);
+      }
+    </script>
+    <script>
       // Apply the theme before first paint: stored choice wins, otherwise follow the system.
       (function () {
         var mq = window.matchMedia("(prefers-color-scheme: dark)");

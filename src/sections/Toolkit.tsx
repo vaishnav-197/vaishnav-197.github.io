@@ -5,11 +5,11 @@ import { container } from "./Section";
 export function Toolkit() {
   return (
     <section id="toolkit" className="border-t border-rule py-16 md:py-24">
-      <h2 className={`${container} meta mb-8`}>05 — Toolkit</h2>
+      <h2 data-swarm="type" className={`${container} meta mb-8`}>05 — Toolkit</h2>
 
       <div className="border-y border-rule">
         {toolkit.map((group, i) => (
-          <div key={group.label} className={`relative ${i > 0 ? "border-t border-rule" : ""}`}>
+          <div key={group.label} data-swarm="type" data-swarm-label={group.label} className={`relative ${i > 0 ? "border-t border-rule" : ""}`}>
             <p className={`${container} pointer-events-none absolute inset-x-0 top-2 z-10`}>
               <span className="meta bg-paper pr-2">{group.label}</span>
             </p>
@@ -40,7 +40,7 @@ export function Toolkit() {
         ))}
       </div>
 
-      <p className={`${container} mt-8 flex flex-wrap items-baseline gap-x-4 gap-y-1`}>
+      <p data-swarm="pop" className={`${container} mt-8 flex flex-wrap items-baseline gap-x-4 gap-y-1`}>
         <span className="meta">Currently exploring</span>
         <a href="#lab" className="font-serif text-2xl italic link-underline">
           {profile.exploring.join(" · ")}

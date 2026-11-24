@@ -121,6 +121,8 @@ export const archive = [
 ];
 
 export type LabEntry = {
+  /** Picks the animated figure shown when the row opens. */
+  id: "possession" | "bundle" | "pitwall";
   title: string;
   summary: string;
   stack: string[];
@@ -128,8 +130,36 @@ export type LabEntry = {
   href?: string;
 };
 
-// Go and distributed-systems experiments. Newest first.
-export const lab: LabEntry[] = [];
+// Side projects. Newest first.
+export const lab: LabEntry[] = [
+  {
+    id: "possession",
+    title: "Total Football",
+    summary:
+      "Ball possession from tracking data for More than a Hack 2027. A Viterbi decoder labels every frame home, away or dead ball.",
+    stack: ["Python", "numpy", "Viterbi"],
+    status: "Building",
+    href: "https://github.com/vaishnav-197/total-football-mtah2027",
+  },
+  {
+    id: "bundle",
+    title: "bundle-budget",
+    summary:
+      "Fails CI when a Vite or Webpack build outgrows its size budget, checked raw, gzip and brotli, per asset, per chunk and in total.",
+    stack: ["TypeScript", "Node.js", "CLI"],
+    status: "Shipped",
+    href: "https://github.com/vaishnav-197/bundle-budget",
+  },
+  {
+    id: "pitwall",
+    title: "pitwall-sim",
+    summary:
+      "F1 race strategy engine. Fits tyre wear from lap times, finds the fastest pit plan with dynamic programming, then races it 5,000 times against random safety cars.",
+    stack: ["Go", "Dynamic programming", "Monte Carlo", "HTTP API"],
+    status: "Shipped",
+    href: "https://github.com/vaishnav-197/pitwall-sim",
+  },
+];
 
 export const toolkit: { label: string; items: string[] }[] = [
   { label: "Back end", items: ["Node.js", "NestJS", "PostgreSQL", "REST", "GraphQL", "AWS", "Cognito", "Playwright"] },

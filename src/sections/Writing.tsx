@@ -21,7 +21,7 @@ export function Writing() {
         <>
           <ol>
             {posts.map((post) => (
-              <li key={post.link} className="border-t border-rule last:border-b">
+              <li key={post.link} data-swarm="type" data-swarm-label={post.title} className="border-t border-rule last:border-b">
                 <a
                   href={post.link}
                   target="_blank"
@@ -37,7 +37,7 @@ export function Writing() {
               </li>
             ))}
           </ol>
-          <a href={mediumUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-block text-sm link-underline">
+          <a href={mediumUrl} target="_blank" rel="noopener noreferrer" data-swarm="pop" className="mt-6 inline-block text-sm link-underline">
             All posts on Medium ↗
           </a>
         </>
